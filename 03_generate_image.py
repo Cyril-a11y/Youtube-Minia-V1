@@ -17,17 +17,15 @@ author = comment.get("author", "Anonyme")
 author_safe = re.sub(r"[^a-zA-Z0-9_-]", "_", author)
 
 os.makedirs("data", exist_ok=True)
+os.makedirs("data/archives", exist_ok=True)
 
-# --- Numéro par auteur ---
-existing_author = [f for f in os.listdir("data") if f.startswith(author_safe) and f.endswith(".png")]
-author_number = len(existing_author) + 1
-author_filename = f"{author_safe}_{author_number}.png"
+# --- Numéro global basé sur le nombre d'archives existantes ---
+existing_archives = [f for f in os.listdir("data/archives") if f.lower().endswith(".png")]
+global_index = len(existing_archives) + 1
+archive_filename = f"{global_index:04d}_{author_safe}.png"
+archive_path = os.path.join("data/archives", archive_filename)
 
-# --- Numéro global ---
-all_pngs = [f for f in os.listdir("data") if f.endswith(".png") and not f == "thumbnail.png"]
-global_number = len(all_pngs) + 1
-global_filename = f"Image_{global_number}.png"
-
+# --- Génération de l'image via Replicate ---
 prompt = f"Une illustration artistique représentant : {text}"
 print("🎨 Prompt envoyé à Replicate :", prompt)
 
@@ -63,15 +61,38 @@ if prediction["status"] != "succeeded":
 image_url = prediction["output"][0]
 img_data = requests.get(image_url).content
 
-# Sauvegardes multiples
-with open(os.path.join("data", author_filename), "wb") as f:
+# --- Sauvegardes finales ---
+# 1) Image archivée avec index global + auteur
+with open(archive_path, "wb") as f:
     f.write(img_data)
 
-with open(os.path.join("data", global_filename), "wb") as f:
+# 2) Alias de la dernière miniature
+with open("data/last_thumbnail.png", "wb") as f:
     f.write(img_data)
 
-with open("data/thumbnail.png", "wb") as f:
-    f.write(img_data)
+# 3) Fichier agrégé de tous les commentaires sélectionnés
+selected_comments_path = "data/selected_comments.json"
+if os.path.exists(selected_comments_path):
+    try:
+        with open(selected_comments_path, "r", encoding="utf-8") as f:
+            all_selected = json.load(f)
+        if not isinstance(all_selected, list):
+            all_selected = []
+    except Exception:
+        all_selected = []
+else:
+    all_selected = []
 
-print(f"✅ Images sauvegardées : {author_filename}, {global_filename}, thumbnail.png")
+# On peut enrichir l'entrée avec l'index/fichier si tu veux le retrouver facilement
+entry = dict(comment)
+entry["_archive_image"] = f"archives/{archive_filename}"
+entry["_index"] = global_index
+all_selected.append(entry)
+
+with open(selected_comments_path, "w", encoding="utf-8") as f:
+    json.dump(all_selected, f, ensure_ascii=False, indent=2)
+
+print(f"✅ Image archivée : {archive_path}")
+print("✅ Dernière miniature : data/last_thumbnail.png")
+print(f"✅ Commentaires agrégés : {selected_comments_path} (total: {len(all_selected)})")
 print("🌍 URL directe :", image_url)
