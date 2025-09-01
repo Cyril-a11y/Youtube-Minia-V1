@@ -1,8 +1,9 @@
 import os
 import json
 import requests
+import time
 
-# Clé API Replicate (stockée dans secrets.REPLICATE_API_TOKEN)
+# Clé API Replicate
 REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
 if not REPLICATE_API_TOKEN:
     raise SystemExit("❌ Manque le secret REPLICATE_API_TOKEN")
@@ -25,7 +26,7 @@ headers = {
     "Content-Type": "application/json"
 }
 payload = {
-    "version": "8ca023ea8073a42e9dc0a90b8c201cd36f1e10868f56589e4440fdf29a7f3cb6",  # SDXL 1.0
+    "version": "stability-ai/sdxl",
     "input": {
         "prompt": prompt,
         "width": 1024,
@@ -33,17 +34,15 @@ payload = {
     }
 }
 
-# Lancer la génération
 response = requests.post(url, headers=headers, json=payload)
-if response.status_code != 201:
+if response.status_code not in [200, 201]:
     print("❌ Erreur API Replicate :", response.text)
     raise SystemExit(1)
 
 prediction = response.json()
 prediction_url = prediction["urls"]["get"]
 
-# Attendre que l’image soit générée
-import time
+# Attendre la fin du rendu
 while prediction["status"] not in ["succeeded", "failed"]:
     time.sleep(3)
     prediction = requests.get(prediction_url, headers=headers).json()
