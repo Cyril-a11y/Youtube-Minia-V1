@@ -13,4 +13,9 @@ selected = random.choice(comments)
 with open("data/selected_comment.json", "w", encoding="utf-8") as f:
     json.dump(selected, f, ensure_ascii=False, indent=2)
 
-print(f"✅ Commentaire choisi : {selected['author']} → {selected['text']}")
+# Log dans la console GitHub Actions
+print("====================================")
+print(f"🎲 Commentaire choisi :")
+print(f"👤 Auteur : {selected['author']}")
+print(f"💬 Texte  : {selected['text']}")
+print("====================================")
