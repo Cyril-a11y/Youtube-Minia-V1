@@ -16,8 +16,8 @@ author = comment.get("author", "Anonyme")
 
 author_safe = re.sub(r"[^a-zA-Z0-9_-]", "_", author)
 
-# Extraire les 10 premiers caractères du commentaire
-snippet = text[:10] if text else "no_text"
+# Extraire les 14 premiers caractères du commentaire
+snippet = text[:14] if text else "no_text"
 snippet_safe = re.sub(r"[^a-zA-Z0-9_-]", "_", snippet)
 
 os.makedirs("data", exist_ok=True)
