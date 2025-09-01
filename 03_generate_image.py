@@ -103,7 +103,7 @@ try:
     gen_img = Image.open(last_thumbnail_path).convert("RGBA")
 
     # Redimensionner l'image générée
-    gen_img = gen_img.resize((785, 500))  # exemple taille réduite
+    gen_img = gen_img.resize((785, 502))  # exemple taille réduite
 
     # Coordonnées (à ajuster selon ton besoin)
     x, y = 458, 150
