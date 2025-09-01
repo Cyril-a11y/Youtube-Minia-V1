@@ -40,10 +40,10 @@ jobs:
         env:
           REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
 
-      - name: Commit and push thumbnail
+      - name: Commit and push results
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/thumbnail.png data/selected_comment.json
-          git commit -m "🖼️ Nouvelle miniature générée automatiquement"
+          git add data/*.png data/*.json
+          git commit -m "🖼️ Nouvelle miniature + commentaire générés automatiquement"
           git push
