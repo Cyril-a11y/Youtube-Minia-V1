@@ -16,13 +16,17 @@ author = comment.get("author", "Anonyme")
 
 author_safe = re.sub(r"[^a-zA-Z0-9_-]", "_", author)
 
+# Extraire les 10 premiers caractères du commentaire
+snippet = text[:10] if text else "no_text"
+snippet_safe = re.sub(r"[^a-zA-Z0-9_-]", "_", snippet)
+
 os.makedirs("data", exist_ok=True)
 os.makedirs("data/archives", exist_ok=True)
 
 # --- Numéro global basé sur le nombre d'archives existantes ---
 existing_archives = [f for f in os.listdir("data/archives") if f.lower().endswith(".png")]
 global_index = len(existing_archives) + 1
-archive_filename = f"{global_index:04d}_{author_safe}.png"
+archive_filename = f"{global_index:04d}_{author_safe}_{snippet_safe}.png"
 archive_path = os.path.join("data/archives", archive_filename)
 
 # --- Génération de l'image via Replicate ---
@@ -62,7 +66,7 @@ image_url = prediction["output"][0]
 img_data = requests.get(image_url).content
 
 # --- Sauvegardes finales ---
-# 1) Image archivée avec index global + auteur
+# 1) Image archivée avec index global + auteur + snippet
 with open(archive_path, "wb") as f:
     f.write(img_data)
 
@@ -83,7 +87,6 @@ if os.path.exists(selected_comments_path):
 else:
     all_selected = []
 
-# On peut enrichir l'entrée avec l'index/fichier si tu veux le retrouver facilement
 entry = dict(comment)
 entry["_archive_image"] = f"archives/{archive_filename}"
 entry["_index"] = global_index
