@@ -1,0 +1,47 @@
+name: Generate Comment Image
+
+on:
+  workflow_dispatch:   # Lancement manuel
+
+permissions:
+  contents: write   # ⚠️ nécessaire pour push dans le repo
+
+jobs:
+  generate-thumbnail:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # important pour push
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Fetch comments
+        run: python 01_fetch_comments.py
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          YOUTUBE_VIDEO_ID: ${{ secrets.YOUTUBE_VIDEO_ID }}
+
+      - name: Select comment
+        run: python 02_select_comment.py
+
+      - name: Generate image
+        run: python 03_generate_image.py
+
+      - name: Commit and push thumbnail
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/thumbnail.png data/selected_comment.json
+          git commit -m "🖼️ Nouvelle miniature générée automatiquement"
+          git push
