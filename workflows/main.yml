@@ -1,7 +1,10 @@
 name: Generate Comment Image
 
 on:
-  workflow_dispatch:   # Lancement manuel uniquement pour tester
+  workflow_dispatch:   # Lancement manuel
+
+permissions:
+  contents: write   # ⚠️ nécessaire pour push dans le repo
 
 jobs:
   generate-thumbnail:
@@ -10,6 +13,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # important pour push
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -33,8 +38,10 @@ jobs:
       - name: Generate image
         run: python 03_generate_image.py
 
-      - name: Upload artifact (voir l'image générée)
-        uses: actions/upload-artifact@v4
-        with:
-          name: generated-thumbnail
-          path: data/thumbnail.png
+      - name: Commit and push thumbnail
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/thumbnail.png data/selected_comment.json
+          git commit -m "🖼️ Nouvelle miniature générée automatiquement"
+          git push
