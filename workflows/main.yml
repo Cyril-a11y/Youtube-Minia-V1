@@ -1,12 +1,10 @@
-name: Dynamic YouTube Thumbnail
+name: Generate Comment Image
 
 on:
-  schedule:
-    - cron: "0 */6 * * *"   # toutes les 6 heures
-  workflow_dispatch:
+  workflow_dispatch:   # Lancement manuel uniquement pour tester
 
 jobs:
-  update-thumbnail:
+  generate-thumbnail:
     runs-on: ubuntu-latest
 
     steps:
@@ -35,9 +33,8 @@ jobs:
       - name: Generate image
         run: python 03_generate_image.py
 
-      - name: Upload thumbnail
-        run: python 04_upload_thumbnail.py
-        env:
-          YOUTUBE_VIDEO_ID: ${{ secrets.YOUTUBE_VIDEO_ID }}
-          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
-          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+      - name: Upload artifact (voir l'image générée)
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-thumbnail
+          path: data/thumbnail.png
