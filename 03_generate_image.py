@@ -3,6 +3,7 @@ import json
 import requests
 import time
 import re
+from PIL import Image  # ✅ pour composer les images
 
 REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
 if not REPLICATE_API_TOKEN:
@@ -70,8 +71,9 @@ img_data = requests.get(image_url).content
 with open(archive_path, "wb") as f:
     f.write(img_data)
 
-# 2) Alias de la dernière miniature
-with open("data/last_thumbnail.png", "wb") as f:
+# 2) Alias de la dernière miniature brute
+last_thumbnail_path = "data/last_thumbnail.png"
+with open(last_thumbnail_path, "wb") as f:
     f.write(img_data)
 
 # 3) Fichier agrégé de tous les commentaires sélectionnés
@@ -95,7 +97,26 @@ all_selected.append(entry)
 with open(selected_comments_path, "w", encoding="utf-8") as f:
     json.dump(all_selected, f, ensure_ascii=False, indent=2)
 
+# 4) Composition finale avec miniature.png
+try:
+    base_img = Image.open("data/miniature.png").convert("RGBA")
+    gen_img = Image.open(last_thumbnail_path).convert("RGBA")
+
+    # Redimensionner l'image générée
+    gen_img = gen_img.resize((784, 500))  # exemple taille réduite
+
+    # Coordonnées (à ajuster selon ton besoin)
+    x, y = 458, 152
+    base_img.paste(gen_img, (x, y), gen_img)
+
+    final_path = "data/final_thumbnail.png"
+    base_img.save(final_path)
+
+    print(f"✅ Image finale composée : {final_path}")
+except Exception as e:
+    print("⚠️ Impossible de composer avec miniature.png :", e)
+
 print(f"✅ Image archivée : {archive_path}")
-print("✅ Dernière miniature : data/last_thumbnail.png")
+print(f"✅ Dernière miniature brute : {last_thumbnail_path}")
 print(f"✅ Commentaires agrégés : {selected_comments_path} (total: {len(all_selected)})")
 print("🌍 URL directe :", image_url)
