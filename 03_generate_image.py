@@ -106,7 +106,7 @@ try:
     gen_img = gen_img.resize((785, 500))  # exemple taille réduite
 
     # Coordonnées (à ajuster selon ton besoin)
-    x, y = 458, 152
+    x, y = 458, 150
     base_img.paste(gen_img, (x, y), gen_img)
 
     final_path = "data/final_thumbnail.png"
