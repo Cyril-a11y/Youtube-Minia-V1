@@ -35,10 +35,10 @@ jobs:
       - name: Select comment
         run: python 02_select_comment.py
 
-      - name: Generate image (AI)
+      - name: Generate image (Replicate SDXL)
         run: python 03_generate_image.py
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
 
       - name: Commit and push thumbnail
         run: |
