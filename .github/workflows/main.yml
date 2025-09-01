@@ -35,8 +35,10 @@ jobs:
       - name: Select comment
         run: python 02_select_comment.py
 
-      - name: Generate image
+      - name: Generate image (AI)
         run: python 03_generate_image.py
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
       - name: Commit and push thumbnail
         run: |
