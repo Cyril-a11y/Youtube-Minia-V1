@@ -28,7 +28,7 @@ os.makedirs("data/archives", exist_ok=True)
 existing_archives = [f for f in os.listdir("data/archives") if f.lower().endswith(".png")]
 global_index = len(existing_archives) + 1
 
-# --- Prompt commun ---
+# --- Prompt ---
 prompt = (
     f"{text}. "
     "High quality, realistic, detailed, coherent with the description, 8k, sharp focus"
@@ -44,10 +44,9 @@ headers = {
 }
 url = "https://api.replicate.com/v1/predictions"
 
-# --- Fonction générique ---
-def generate_image(model_version, label, index_offset=0):
+def generate_flux_image():
     payload = {
-        "version": model_version,
+        "version": "black-forest-labs/flux-dev",
         "input": {
             "prompt": prompt,
             "negative_prompt": negative_prompt,
@@ -59,7 +58,7 @@ def generate_image(model_version, label, index_offset=0):
     }
     response = requests.post(url, headers=headers, json=payload)
     if response.status_code not in (200, 201):
-        print(f"❌ Erreur API ({label}):", response.text)
+        print("❌ Erreur API Flux:", response.text)
         return None
 
     prediction = response.json()
@@ -70,40 +69,30 @@ def generate_image(model_version, label, index_offset=0):
         prediction = requests.get(prediction_url, headers=headers).json()
 
     if prediction["status"] != "succeeded":
-        print(f"❌ Génération {label} a échoué")
+        print("❌ Génération Flux a échoué")
         return None
 
     image_url = prediction["output"][0]
     img_data = requests.get(image_url).content
 
-    archive_filename = f"{global_index+index_offset:04d}_{author_safe}_{snippet_safe}_{label}.png"
+    archive_filename = f"{global_index:04d}_{author_safe}_{snippet_safe}_FLUX.png"
     archive_path = os.path.join("data/archives", archive_filename)
 
     with open(archive_path, "wb") as f:
         f.write(img_data)
 
-    print(f"✅ Image {label} sauvegardée :", archive_path)
+    print(f"✅ Image Flux sauvegardée :", archive_path)
     return archive_path
 
-# --- Générer avec 3 modèles ---
-models = {
-    "SDXL-Turbo": "jyoung105/sdxl-turbo",
-    "PixArt-α": "lucataco/pixart-xl-2",
-    "FLUX": "black-forest-labs/flux-dev"
-}
+# --- Génération Flux ---
+generated_path = generate_flux_image()
 
-generated_paths = []
-for i, (label, model_slug) in enumerate(models.items()):
-    path = generate_image(model_slug, label, i)
-    if path:
-        generated_paths.append(path)
-
-# --- Composer une miniature avec la dernière image générée ---
+# --- Composer une miniature ---
 final_path = None
-if generated_paths:
+if generated_path:
     try:
         base_img = Image.open("data/miniature.png").convert("RGBA")
-        gen_img = Image.open(generated_paths[-1]).convert("RGBA")  # dernière = FLUX
+        gen_img = Image.open(generated_path).convert("RGBA")
         gen_img = gen_img.resize((785, 502))
         base_img.paste(gen_img, (458, 150), gen_img)
 
@@ -138,7 +127,7 @@ else:
     all_selected = []
 
 entry = dict(comment)
-entry["_generated_images"] = generated_paths
+entry["_generated_image"] = generated_path
 entry["_index"] = global_index
 all_selected.append(entry)
 
@@ -156,4 +145,4 @@ if final_path and os.path.exists(final_path):
         json.dump(last_update, f)
     print(f"🕒 Horodatage mis à jour : {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(now_ts))}")
 
-print("🎉 Terminé. Images générées :", generated_paths)
+print("🎉 Terminé. Image générée :", generated_path)
