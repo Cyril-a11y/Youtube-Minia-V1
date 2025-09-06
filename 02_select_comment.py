@@ -2,6 +2,7 @@ import json
 import random
 import os
 import re
+import time
 
 # Charger les commentaires
 with open("data/comments.json", "r", encoding="utf-8") as f:
@@ -39,9 +40,16 @@ with open("data/selected_comment.json", "w", encoding="utf-8") as f:
 with open(os.path.join("data", global_filename), "w", encoding="utf-8") as f:
     json.dump(selected, f, ensure_ascii=False, indent=2)
 
+# --- Logs détaillés ---
 print("====================================")
 print("🏆 Nouveau commentaire choisi :")
 print(f"👤 Auteur : {selected['author']}")
 print(f"💬 Texte  : {selected['text']}")
 print(f"👍 Likes  : {selected['likes']}")
+if "publishedAt" in selected:
+    try:
+        ts = time.strptime(selected["publishedAt"], "%Y-%m-%dT%H:%M:%SZ")
+        print(f"🕒 Publié le : {time.strftime('%Y-%m-%d %H:%M:%S', ts)}")
+    except Exception:
+        print(f"🕒 Publié le : {selected['publishedAt']}")
 print("====================================")
