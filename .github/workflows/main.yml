@@ -25,35 +25,74 @@ jobs:
 
       - name: Install dependencies
         run: |
+          echo "📦 Installation des dépendances..."
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Fetch comments
-        run: python 01_fetch_comments.py
+        id: fetch
+        run: |
+          echo "🔎 Récupération des commentaires..."
+          python 01_fetch_comments.py || echo "NO_COMMENTS" > no_comments.flag
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           YOUTUBE_VIDEO_ID: ${{ secrets.YOUTUBE_VIDEO_ID }}
 
+      - name: Stop if no new comments
+        if: hashFiles('no_comments.flag') != ''
+        run: echo "ℹ️ Aucun commentaire valide trouvé → Fin du workflow."
+
       - name: Select comment
-        run: python 02_select_comment.py
+        if: hashFiles('no_comments.flag') == ''
+        id: select
+        run: |
+          echo "🏆 Sélection du meilleur commentaire..."
+          python 02_select_comment.py || echo "NO_SELECTION" > no_selection.flag
+
+      - name: Stop if no selection
+        if: hashFiles('no_selection.flag') != ''
+        run: echo "ℹ️ Aucun commentaire sélectionné → Fin du workflow."
 
       - name: Generate image (Replicate SDXL)
-        run: python 03_generate_image.py
+        if: hashFiles('no_comments.flag') == '' && hashFiles('no_selection.flag') == ''
+        run: |
+          echo "🎨 Génération de la miniature avec Replicate..."
+          python 03_generate_image.py
         env:
           REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
 
       - name: Commit and push results
+        if: hashFiles('no_comments.flag') == '' && hashFiles('no_selection.flag') == ''
         run: |
+          echo "💾 Commit et push des résultats..."
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/final_thumbnail.png data/last_thumbnail.png data/archives/*.png data/selected_comments.json
+          git add data/final_thumbnail.png data/last_thumbnail.png data/archives/*.png data/selected_comments.json || true
           git commit -m "🖼️ Nouvelle miniature finale + mise à jour des commentaires" || echo "ℹ️ Rien à commit"
           git push
 
       - name: Upload thumbnail to YouTube
-        run: python upload_thumbnail.py
+        if: hashFiles('no_comments.flag') == '' && hashFiles('no_selection.flag') == ''
+        run: |
+          echo "⬆️ Upload de la miniature vers YouTube..."
+          python upload_thumbnail.py
         env:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           YOUTUBE_VIDEO_ID: ${{ secrets.YOUTUBE_VIDEO_ID }}
+
+      - name: Final summary
+        if: always()
+        run: |
+          echo "=============================="
+          if [ -f no_comments.flag ]; then
+            echo "📭 Fin du workflow : Aucun nouveau commentaire trouvé."
+          elif [ -f no_selection.flag ]; then
+            echo "⚠️ Fin du workflow : Impossible de sélectionner un commentaire."
+          elif [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Fin du workflow : Miniature générée et uploadée avec succès."
+          else
+            echo "❌ Fin du workflow : Une erreur est survenue."
+          fi
+          echo "=============================="
