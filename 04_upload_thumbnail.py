@@ -1,4 +1,5 @@
 import os
+import sys
 import google.auth.transport.requests
 import google.oauth2.credentials
 import googleapiclient.discovery
@@ -10,7 +11,12 @@ REFRESH_TOKEN = os.getenv("YOUTUBE_REFRESH_TOKEN")
 VIDEO_ID = os.getenv("YOUTUBE_VIDEO_ID")
 
 if not all([CLIENT_ID, CLIENT_SECRET, REFRESH_TOKEN, VIDEO_ID]):
-    raise SystemExit("❌ Manque un secret GitHub (CLIENT_ID, CLIENT_SECRET, REFRESH_TOKEN, VIDEO_ID)")
+    sys.exit("❌ Manque un secret GitHub (YOUTUBE_CLIENT_ID, YOUTUBE_CLIENT_SECRET, YOUTUBE_REFRESH_TOKEN, YOUTUBE_VIDEO_ID)")
+
+# Fichier miniature attendu
+THUMBNAIL_PATH = "data/final_thumbnail.png"
+if not os.path.exists(THUMBNAIL_PATH):
+    sys.exit(f"❌ Miniature introuvable : {THUMBNAIL_PATH}")
 
 # Scopes nécessaires pour gérer les vidéos & miniatures
 SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
@@ -36,7 +42,7 @@ def main():
     # Upload miniature
     request = youtube.thumbnails().set(
         videoId=VIDEO_ID,
-        media_body="data/thumbnail.png"
+        media_body=THUMBNAIL_PATH
     )
     response = request.execute()
 
