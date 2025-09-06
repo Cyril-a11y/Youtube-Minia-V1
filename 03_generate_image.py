@@ -3,7 +3,8 @@ import json
 import requests
 import time
 import re
-from PIL import Image  # ✅ pour composer les images
+import textwrap
+from PIL import Image, ImageDraw, ImageFont  # ✅ pour texte
 
 REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
 if not REPLICATE_API_TOKEN:
@@ -54,8 +55,8 @@ payload = {
         "negative_prompt": negative_prompt,
         "width": 1280,
         "height": 720,
-        "guidance_scale": 9,       # plus fidèle au prompt
-        "num_inference_steps": 50  # plus de détails
+        "guidance_scale": 9,
+        "num_inference_steps": 50
     }
 }
 
@@ -106,7 +107,7 @@ all_selected.append(entry)
 with open(selected_comments_path, "w", encoding="utf-8") as f:
     json.dump(all_selected, f, ensure_ascii=False, indent=2)
 
-# 4) Composition finale avec miniature.png
+# 4) Composition finale avec miniature.png + texte
 final_path = None
 try:
     base_img = Image.open("data/miniature.png").convert("RGBA")
@@ -114,9 +115,29 @@ try:
     gen_img = gen_img.resize((785, 502))
     x, y = 458, 150
     base_img.paste(gen_img, (x, y), gen_img)
+
+    # --- Ajouter texte auteur + commentaire ---
+    draw = ImageDraw.Draw(base_img)
+
+    try:
+        font = ImageFont.truetype("arial.ttf", 28)  # Arial si dispo
+    except:
+        font = ImageFont.load_default()
+
+    text_color = (255, 255, 255, 255)  # blanc
+
+    # Auteur
+    author_text = f"Auteur: {author}"
+    draw.text((20, base_img.height - 90), author_text, font=font, fill=text_color)
+
+    # Commentaire avec retour ligne automatique
+    wrapped = textwrap.fill(text, width=50)
+    draw.text((20, base_img.height - 50), wrapped, font=font, fill=text_color)
+
     final_path = "data/final_thumbnail.png"
     base_img.save(final_path)
-    print(f"✅ Image finale composée : {final_path}")
+    print(f"✅ Image finale composée avec texte : {final_path}")
+
 except Exception as e:
     print("⚠️ Impossible de composer avec miniature.png :", e)
 
