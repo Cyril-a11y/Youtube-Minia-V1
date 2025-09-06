@@ -20,15 +20,18 @@ if not os.path.exists(last_update_path):
         json.dump({"timestamp": 0}, f)
     last_update_ts = 0
     use_time_filter = False
+    print("🆕 Fichier last_update.json créé avec timestamp = 0")
 else:
     try:
         with open(last_update_path, "r", encoding="utf-8") as f:
             data = json.load(f)
             last_update_ts = data.get("timestamp", 0)
             use_time_filter = last_update_ts > 0
+        print(f"🕒 Dernier horodatage chargé : {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(last_update_ts))}")
     except Exception:
         last_update_ts = 0
         use_time_filter = False
+        print("⚠️ Impossible de lire last_update.json → utilisation de timestamp = 0")
 
 # Récupère les 50 derniers commentaires (triés par date)
 request = youtube.commentThreads().list(
@@ -66,6 +69,11 @@ for item in response.get("items", []):
 if not use_time_filter:
     comments = comments[:30]
 
+# Mise à jour de l'horodatage (dans tous les cas)
+now_ts = int(time.time())
+with open(last_update_path, "w", encoding="utf-8") as f:
+    json.dump({"timestamp": now_ts}, f)
+
 # Sauvegarde et gestion des cas vides
 if not comments:
     print("ℹ️ Aucun nouveau commentaire valide trouvé.")
@@ -78,3 +86,5 @@ else:
         print(f"✅ {len(comments)} nouveaux commentaires après {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(last_update_ts))}")
     else:
         print(f"✅ {len(comments)} derniers commentaires sélectionnés (aucun horodatage trouvé)")
+
+print(f"🕒 Nouvel horodatage enregistré : {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(now_ts))}")
