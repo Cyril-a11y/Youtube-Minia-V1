@@ -81,11 +81,17 @@ jobs:
           git commit -m "🖼️ Nouvelle miniature finale + mise à jour des commentaires + horodatage" || echo "ℹ️ Rien à commit"
           git push
 
+      - name: Wait before upload
+        if: hashFiles('no_comments.flag') == '' && hashFiles('no_selection.flag') == ''
+        run: |
+          echo "⏳ Attente de 60 secondes avant upload..."
+          sleep 60
+
       - name: Upload thumbnail to YouTube
         if: hashFiles('no_comments.flag') == '' && hashFiles('no_selection.flag') == ''
         run: |
           echo "⬆️ Upload de la miniature vers YouTube..."
-          python upload_thumbnail.py
+          python 04_upload_thumbnail.py
         env:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
