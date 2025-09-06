@@ -95,6 +95,7 @@ with open(selected_comments_path, "w", encoding="utf-8") as f:
     json.dump(all_selected, f, ensure_ascii=False, indent=2)
 
 # 4) Composition finale avec miniature.png
+final_path = None
 try:
     base_img = Image.open("data/miniature.png").convert("RGBA")
     gen_img = Image.open(last_thumbnail_path).convert("RGBA")
@@ -107,10 +108,13 @@ try:
 except Exception as e:
     print("⚠️ Impossible de composer avec miniature.png :", e)
 
-# Mettre à jour le fichier last_update.json
-last_update = {"timestamp": int(time.time())}
-with open("data/last_update.json", "w", encoding="utf-8") as f:
-    json.dump(last_update, f)
+# Mettre à jour le fichier last_update.json UNIQUEMENT si une image finale a été générée
+if final_path and os.path.exists(final_path):
+    now_ts = int(time.time())
+    last_update = {"timestamp": now_ts}
+    with open("data/last_update.json", "w", encoding="utf-8") as f:
+        json.dump(last_update, f)
+    print(f"🕒 Horodatage mis à jour : {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(now_ts))}")
 
 print(f"✅ Image archivée : {archive_path}")
 print(f"✅ Dernière miniature brute : {last_thumbnail_path}")
