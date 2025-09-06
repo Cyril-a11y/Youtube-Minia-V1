@@ -30,7 +30,9 @@ archive_filename = f"{global_index:04d}_{author_safe}_{snippet_safe}.png"
 archive_path = os.path.join("data/archives", archive_filename)
 
 # --- Génération de l'image via Replicate ---
-prompt = f"Une illustration artistique représentant : {text}"
+prompt = f"Une image photoréaliste représentant : {text}, haute qualité, style photographie réaliste, détails précis, lumière naturelle"
+negative_prompt = "dessin, peinture, cartoon, illustration, animé, art stylisé, lowres, 3D render"
+
 print("🎨 Prompt envoyé à Replicate :", prompt)
 
 url = "https://api.replicate.com/v1/predictions"
@@ -42,6 +44,7 @@ payload = {
     "version": "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
     "input": {
         "prompt": prompt,
+        "negative_prompt": negative_prompt,
         "width": 1280,
         "height": 720
     }
