@@ -52,7 +52,6 @@ for item in response.get("items", []):
         continue
 
     if use_time_filter:
-        # Filtrer selon le temps de mise à jour
         published = snippet["publishedAt"]  # ex: "2025-09-06T09:50:43Z"
         ts = int(time.mktime(time.strptime(published, "%Y-%m-%dT%H:%M:%SZ")))
         if ts <= last_update_ts:
@@ -69,11 +68,6 @@ for item in response.get("items", []):
 if not use_time_filter:
     comments = comments[:30]
 
-# Mise à jour de l'horodatage (dans tous les cas)
-now_ts = int(time.time())
-with open(last_update_path, "w", encoding="utf-8") as f:
-    json.dump({"timestamp": now_ts}, f)
-
 # Sauvegarde et gestion des cas vides
 if not comments:
     print("ℹ️ Aucun nouveau commentaire valide trouvé.")
@@ -86,5 +80,3 @@ else:
         print(f"✅ {len(comments)} nouveaux commentaires après {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(last_update_ts))}")
     else:
         print(f"✅ {len(comments)} derniers commentaires sélectionnés (aucun horodatage trouvé)")
-
-print(f"🕒 Nouvel horodatage enregistré : {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(now_ts))}")
