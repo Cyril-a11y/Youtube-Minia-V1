@@ -3,11 +3,15 @@ import random
 import os
 import re
 
+# Charger les commentaires
 with open("data/comments.json", "r", encoding="utf-8") as f:
     comments = json.load(f)
 
+# Aucun commentaire valide
 if not comments:
     print("ℹ️ Aucun commentaire valide trouvé → pas de changement.")
+    with open("no_selection.flag", "w") as f:
+        f.write("no selection")
     raise SystemExit(0)
 
 # Trouver le max de likes
