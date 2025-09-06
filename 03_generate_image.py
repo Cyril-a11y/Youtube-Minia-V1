@@ -3,7 +3,6 @@ import json
 import requests
 import time
 import re
-import textwrap
 from PIL import Image, ImageDraw, ImageFont
 
 REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
@@ -24,7 +23,7 @@ snippet_safe = re.sub(r"[^a-zA-Z0-9_-]", "_", snippet)
 os.makedirs("data", exist_ok=True)
 os.makedirs("data/archives", exist_ok=True)
 
-# --- Numéro global basé sur le nombre d'archives existantes ---
+# --- Numéro global basé sur les archives ---
 existing_archives = [f for f in os.listdir("data/archives") if f.lower().endswith(".png")]
 global_index = len(existing_archives) + 1
 
@@ -44,9 +43,9 @@ headers = {
 }
 url = "https://api.replicate.com/v1/predictions"
 
-def generate_flux_image():
+def generate_sdxl_image():
     payload = {
-        "version": "black-forest-labs/flux-dev",
+        "version": "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
         "input": {
             "prompt": prompt,
             "negative_prompt": negative_prompt,
@@ -58,7 +57,7 @@ def generate_flux_image():
     }
     response = requests.post(url, headers=headers, json=payload)
     if response.status_code not in (200, 201):
-        print("❌ Erreur API Flux:", response.text)
+        print("❌ Erreur API SDXL:", response.text)
         return None
 
     prediction = response.json()
@@ -69,23 +68,23 @@ def generate_flux_image():
         prediction = requests.get(prediction_url, headers=headers).json()
 
     if prediction["status"] != "succeeded":
-        print("❌ Génération Flux a échoué")
+        print("❌ Génération SDXL a échoué")
         return None
 
     image_url = prediction["output"][0]
     img_data = requests.get(image_url).content
 
-    archive_filename = f"{global_index:04d}_{author_safe}_{snippet_safe}_FLUX.png"
+    archive_filename = f"{global_index:04d}_{author_safe}_{snippet_safe}_SDXL.png"
     archive_path = os.path.join("data/archives", archive_filename)
 
     with open(archive_path, "wb") as f:
         f.write(img_data)
 
-    print(f"✅ Image Flux sauvegardée :", archive_path)
+    print(f"✅ Image SDXL sauvegardée :", archive_path)
     return archive_path
 
-# --- Génération Flux ---
-generated_path = generate_flux_image()
+# --- Génération SDXL ---
+generated_path = generate_sdxl_image()
 
 # --- Composer une miniature ---
 final_path = None
@@ -94,7 +93,10 @@ if generated_path:
         base_img = Image.open("data/miniature.png").convert("RGBA")
         gen_img = Image.open(generated_path).convert("RGBA")
         gen_img = gen_img.resize((785, 502))
-        base_img.paste(gen_img, (458, 150), gen_img)
+
+        # Position du cadre
+        x, y = 458, 150
+        base_img.paste(gen_img, (x, y), gen_img)
 
         draw = ImageDraw.Draw(base_img)
         try:
@@ -103,13 +105,42 @@ if generated_path:
             font = ImageFont.load_default()
 
         text_color = (255, 255, 255, 255)
-        draw.text((20, base_img.height - 90), f"Auteur: {author}", font=font, fill=text_color)
-        wrapped = textwrap.fill(text, width=50)
-        draw.text((20, base_img.height - 50), wrapped, font=font, fill=text_color)
+        text_start_y = y + gen_img.height + 20
+        margin_right = 40
+
+        # Auteur aligné à droite
+        author_text = f"Auteur: {author}"
+        aw, ah = draw.textsize(author_text, font=font)
+        draw.text((x + gen_img.width - aw - margin_right, text_start_y), author_text, font=font, fill=text_color)
+
+        # Commentaire aligné à droite avec retour dynamique
+        max_width = gen_img.width - 2 * margin_right
+        words = text.split()
+        wrapped_lines = []
+        line = ""
+        for word in words:
+            test_line = line + (" " if line else "") + word
+            lw, _ = draw.textsize(test_line, font=font)
+            if lw <= max_width:
+                line = test_line
+            else:
+                wrapped_lines.append(line)
+                line = word
+        if line:
+            wrapped_lines.append(line)
+
+        for j, line in enumerate(wrapped_lines):
+            lw, lh = draw.textsize(line, font=font)
+            draw.text(
+                (x + gen_img.width - lw - margin_right, text_start_y + 40 + j * lh),
+                line,
+                font=font,
+                fill=text_color
+            )
 
         final_path = "data/final_thumbnail.png"
         base_img.save(final_path)
-        print(f"✅ Miniature finale composée : {final_path}")
+        print(f"✅ Miniature finale composée avec texte SDXL : {final_path}")
     except Exception as e:
         print("⚠️ Impossible de composer la miniature :", e)
 
