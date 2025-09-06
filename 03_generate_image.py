@@ -9,6 +9,7 @@ REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
 if not REPLICATE_API_TOKEN:
     raise SystemExit("❌ Manque le secret REPLICATE_API_TOKEN")
 
+# Charger le commentaire sélectionné
 with open("data/selected_comment.json", "r", encoding="utf-8") as f:
     comment = json.load(f)
 
@@ -16,8 +17,6 @@ text = comment.get("text", "")
 author = comment.get("author", "Anonyme")
 
 author_safe = re.sub(r"[^a-zA-Z0-9_-]", "_", author)
-
-# Extraire les 14 premiers caractères du commentaire
 snippet = text[:14] if text else "no_text"
 snippet_safe = re.sub(r"[^a-zA-Z0-9_-]", "_", snippet)
 
@@ -67,16 +66,14 @@ image_url = prediction["output"][0]
 img_data = requests.get(image_url).content
 
 # --- Sauvegardes finales ---
-# 1) Image archivée avec index global + auteur + snippet
 with open(archive_path, "wb") as f:
     f.write(img_data)
 
-# 2) Alias de la dernière miniature brute
 last_thumbnail_path = "data/last_thumbnail.png"
 with open(last_thumbnail_path, "wb") as f:
     f.write(img_data)
 
-# 3) Fichier agrégé de tous les commentaires sélectionnés
+# Fichier agrégé de tous les commentaires sélectionnés
 selected_comments_path = "data/selected_comments.json"
 if os.path.exists(selected_comments_path):
     try:
@@ -101,20 +98,19 @@ with open(selected_comments_path, "w", encoding="utf-8") as f:
 try:
     base_img = Image.open("data/miniature.png").convert("RGBA")
     gen_img = Image.open(last_thumbnail_path).convert("RGBA")
-
-    # Redimensionner l'image générée
-    gen_img = gen_img.resize((785, 502))  # exemple taille réduite
-
-    # Coordonnées (à ajuster selon ton besoin)
+    gen_img = gen_img.resize((785, 502))
     x, y = 458, 150
     base_img.paste(gen_img, (x, y), gen_img)
-
     final_path = "data/final_thumbnail.png"
     base_img.save(final_path)
-
     print(f"✅ Image finale composée : {final_path}")
 except Exception as e:
     print("⚠️ Impossible de composer avec miniature.png :", e)
+
+# Mettre à jour le fichier last_update.json
+last_update = {"timestamp": int(time.time())}
+with open("data/last_update.json", "w", encoding="utf-8") as f:
+    json.dump(last_update, f)
 
 print(f"✅ Image archivée : {archive_path}")
 print(f"✅ Dernière miniature brute : {last_thumbnail_path}")
