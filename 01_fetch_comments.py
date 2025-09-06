@@ -45,16 +45,19 @@ response = request.execute()
 comments = []
 for item in response.get("items", []):
     snippet = item["snippet"]["topLevelComment"]["snippet"]
-    text = snippet["textDisplay"].strip()
+    text = snippet.get("textOriginal", "").strip()  # ✅ utiliser le texte brut
+
+    print(f"🔍 Commentaire brut reçu : {repr(text)} (likes={snippet['likeCount']})")
 
     # Garder seulement si ça commence par #
-    if not text.startswith("#"):
+    if not text.lstrip().startswith("#"):
         continue
 
     if use_time_filter:
         published = snippet["publishedAt"]  # ex: "2025-09-06T09:50:43Z"
         ts = int(time.mktime(time.strptime(published, "%Y-%m-%dT%H:%M:%SZ")))
         if ts <= last_update_ts:
+            print(f"⏩ Ignoré (avant ou égal à dernier horodatage : {published})")
             continue
 
     comments.append({
