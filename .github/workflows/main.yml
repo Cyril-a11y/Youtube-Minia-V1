@@ -84,8 +84,8 @@ jobs:
       - name: Wait before upload
         if: hashFiles('no_comments.flag') == '' && hashFiles('no_selection.flag') == ''
         run: |
-          echo "⏳ Attente de 60 secondes avant upload..."
-          sleep 60
+          echo "⏳ Attente de 30 secondes avant upload..."
+          sleep 30
 
       - name: Upload thumbnail to YouTube
         if: hashFiles('no_comments.flag') == '' && hashFiles('no_selection.flag') == ''
