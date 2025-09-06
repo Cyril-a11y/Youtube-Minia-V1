@@ -38,6 +38,16 @@ jobs:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           YOUTUBE_VIDEO_ID: ${{ secrets.YOUTUBE_VIDEO_ID }}
 
+      - name: Commit timestamp if no comments
+        if: hashFiles('no_comments.flag') != ''
+        run: |
+          echo "💾 Commit horodatage seul (aucun commentaire trouvé)..."
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/last_update.json || true
+          git commit -m "🕒 Mise à jour horodatage (aucun commentaire trouvé)" || echo "ℹ️ Rien à commit"
+          git push
+
       - name: Stop if no new comments
         if: hashFiles('no_comments.flag') != ''
         run: echo "ℹ️ Aucun commentaire valide trouvé → Fin du workflow."
