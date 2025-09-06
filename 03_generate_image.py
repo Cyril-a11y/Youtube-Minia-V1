@@ -4,7 +4,7 @@ import requests
 import time
 import re
 import textwrap
-from PIL import Image, ImageDraw, ImageFont  # ✅ pour texte
+from PIL import Image, ImageDraw, ImageFont
 
 REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
 if not REPLICATE_API_TOKEN:
@@ -57,9 +57,8 @@ def generate_image(model_version, label, index_offset=0):
             "num_inference_steps": 50
         }
     }
-
     response = requests.post(url, headers=headers, json=payload)
-    if response.status_code not in [200, 201]:
+    if response.status_code not in (200, 201):
         print(f"❌ Erreur API ({label}):", response.text)
         return None
 
@@ -71,7 +70,7 @@ def generate_image(model_version, label, index_offset=0):
         prediction = requests.get(prediction_url, headers=headers).json()
 
     if prediction["status"] != "succeeded":
-        print(f"❌ La génération {label} a échoué")
+        print(f"❌ Génération {label} a échoué")
         return None
 
     image_url = prediction["output"][0]
@@ -88,25 +87,25 @@ def generate_image(model_version, label, index_offset=0):
 
 # --- Générer avec 3 modèles ---
 models = {
-    "SDXL-Turbo": "stability-ai/sdxl-turbo:latest",
-    "PixArt-α": "tencentarc/pixart-alpha:latest",
-    "FLUX": "black-forest-labs/flux:latest"
+    "SDXL-Turbo": "jyoung105/sdxl-turbo",
+    "PixArt-α": "lucataco/pixart-xl-2",
+    "FLUX": "black-forest-labs/flux-dev"
 }
 
 generated_paths = []
-for i, (label, model) in enumerate(models.items()):
-    path = generate_image(model, label, i)
+for i, (label, model_slug) in enumerate(models.items()):
+    path = generate_image(model_slug, label, i)
     if path:
         generated_paths.append(path)
 
-# --- Composer une miniature avec la dernière image générée (optionnel) ---
+# --- Composer une miniature avec la dernière image générée ---
+final_path = None
 if generated_paths:
     try:
         base_img = Image.open("data/miniature.png").convert("RGBA")
-        gen_img = Image.open(generated_paths[-1]).convert("RGBA")
+        gen_img = Image.open(generated_paths[-1]).convert("RGBA")  # dernière = FLUX
         gen_img = gen_img.resize((785, 502))
-        x, y = 458, 150
-        base_img.paste(gen_img, (x, y), gen_img)
+        base_img.paste(gen_img, (458, 150), gen_img)
 
         draw = ImageDraw.Draw(base_img)
         try:
@@ -115,9 +114,7 @@ if generated_paths:
             font = ImageFont.load_default()
 
         text_color = (255, 255, 255, 255)
-        author_text = f"Auteur: {author}"
-        draw.text((20, base_img.height - 90), author_text, font=font, fill=text_color)
-
+        draw.text((20, base_img.height - 90), f"Auteur: {author}", font=font, fill=text_color)
         wrapped = textwrap.fill(text, width=50)
         draw.text((20, base_img.height - 50), wrapped, font=font, fill=text_color)
 
@@ -126,5 +123,37 @@ if generated_paths:
         print(f"✅ Miniature finale composée : {final_path}")
     except Exception as e:
         print("⚠️ Impossible de composer la miniature :", e)
+
+# --- Sauvegarder dans selected_comments.json ---
+selected_comments_path = "data/selected_comments.json"
+if os.path.exists(selected_comments_path):
+    try:
+        with open(selected_comments_path, "r", encoding="utf-8") as f:
+            all_selected = json.load(f)
+        if not isinstance(all_selected, list):
+            all_selected = []
+    except Exception:
+        all_selected = []
+else:
+    all_selected = []
+
+entry = dict(comment)
+entry["_generated_images"] = generated_paths
+entry["_index"] = global_index
+all_selected.append(entry)
+
+with open(selected_comments_path, "w", encoding="utf-8") as f:
+    json.dump(all_selected, f, ensure_ascii=False, indent=2)
+
+print(f"✅ Commentaires agrégés : {selected_comments_path} (total: {len(all_selected)})")
+
+# --- Mise à jour de l'horodatage ---
+if final_path and os.path.exists(final_path):
+    now_ts = int(time.time())
+    last_update_path = "data/last_update.json"
+    last_update = {"timestamp": now_ts}
+    with open(last_update_path, "w", encoding="utf-8") as f:
+        json.dump(last_update, f)
+    print(f"🕒 Horodatage mis à jour : {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(now_ts))}")
 
 print("🎉 Terminé. Images générées :", generated_paths)
