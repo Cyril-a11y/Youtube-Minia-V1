@@ -108,13 +108,16 @@ try:
 except Exception as e:
     print("⚠️ Impossible de composer avec miniature.png :", e)
 
-# Mettre à jour le fichier last_update.json UNIQUEMENT si une image finale a été générée
+# ✅ Mise à jour de l'horodatage uniquement si une image finale existe
 if final_path and os.path.exists(final_path):
     now_ts = int(time.time())
+    last_update_path = "data/last_update.json"
     last_update = {"timestamp": now_ts}
-    with open("data/last_update.json", "w", encoding="utf-8") as f:
+    with open(last_update_path, "w", encoding="utf-8") as f:
         json.dump(last_update, f)
     print(f"🕒 Horodatage mis à jour : {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(now_ts))}")
+else:
+    print("⚠️ Horodatage NON mis à jour (pas de final_thumbnail générée).")
 
 print(f"✅ Image archivée : {archive_path}")
 print(f"✅ Dernière miniature brute : {last_thumbnail_path}")
