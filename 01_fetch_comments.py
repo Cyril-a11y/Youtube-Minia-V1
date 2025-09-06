@@ -53,8 +53,14 @@ for item in response.get("items", []):
         "publishedAt": published
     })
 
+# Sauvegarde et gestion des cas vides
 os.makedirs("data", exist_ok=True)
-with open("data/comments.json", "w", encoding="utf-8") as f:
-    json.dump(comments, f, ensure_ascii=False, indent=2)
 
-print(f"✅ {len(comments)} commentaires filtrés et sauvegardés dans data/comments.json")
+if not comments:
+    print("ℹ️ Aucun nouveau commentaire valide trouvé.")
+    with open("no_comments.flag", "w") as f:
+        f.write("no comments")
+else:
+    with open("data/comments.json", "w", encoding="utf-8") as f:
+        json.dump(comments, f, ensure_ascii=False, indent=2)
+    print(f"✅ {len(comments)} commentaires filtrés et sauvegardés dans data/comments.json")
