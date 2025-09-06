@@ -67,8 +67,8 @@ jobs:
           echo "💾 Commit et push des résultats..."
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/final_thumbnail.png data/last_thumbnail.png data/archives/*.png data/selected_comments.json || true
-          git commit -m "🖼️ Nouvelle miniature finale + mise à jour des commentaires" || echo "ℹ️ Rien à commit"
+          git add data/final_thumbnail.png data/last_thumbnail.png data/archives/*.png data/selected_comments.json data/last_update.json || true
+          git commit -m "🖼️ Nouvelle miniature finale + mise à jour des commentaires + horodatage" || echo "ℹ️ Rien à commit"
           git push
 
       - name: Upload thumbnail to YouTube
@@ -91,7 +91,7 @@ jobs:
           elif [ -f no_selection.flag ]; then
             echo "⚠️ Fin du workflow : Impossible de sélectionner un commentaire."
           elif [ "${{ job.status }}" == "success" ]; then
-            echo "✅ Fin du workflow : Miniature générée et uploadée avec succès."
+            echo "✅ Fin du workflow : Miniature générée, uploadée et horodatage sauvegardé."
           else
             echo "❌ Fin du workflow : Une erreur est survenue."
           fi
