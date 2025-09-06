@@ -30,8 +30,8 @@ archive_filename = f"{global_index:04d}_{author_safe}_{snippet_safe}.png"
 archive_path = os.path.join("data/archives", archive_filename)
 
 # --- Génération de l'image via Replicate ---
-prompt = f"Une image photoréaliste représentant : {text}, haute qualité, style photographie réaliste, détails précis, lumière naturelle"
-negative_prompt = "dessin, peinture, cartoon, illustration, animé, art stylisé, lowres, 3D render"
+prompt = f"Une image photoréaliste représentant : {text}, haute qualité, détails précis"
+negative_prompt = ""
 
 print("🎨 Prompt envoyé à Replicate :", prompt)
 
