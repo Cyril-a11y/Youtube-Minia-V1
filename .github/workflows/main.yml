@@ -1,7 +1,9 @@
 name: Generate Comment Image
 
 on:
-  workflow_dispatch:   # Lancement manuel
+  schedule:
+    - cron: "*/20 * * * *"   # Toutes les 20 minutes
+  workflow_dispatch:          # Lancement manuel possible
 
 permissions:
   contents: write   # ⚠️ nécessaire pour push dans le repo
@@ -45,5 +47,13 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add data/final_thumbnail.png data/last_thumbnail.png data/archives/*.png data/selected_comments.json
-          git commit -m "🖼️ Nouvelle miniature finale + mise à jour des commentaires"
+          git commit -m "🖼️ Nouvelle miniature finale + mise à jour des commentaires" || echo "ℹ️ Rien à commit"
           git push
+
+      - name: Upload thumbnail to YouTube
+        run: python upload_thumbnail.py
+        env:
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          YOUTUBE_VIDEO_ID: ${{ secrets.YOUTUBE_VIDEO_ID }}
