@@ -71,20 +71,10 @@ if not comments:
     print("ℹ️ Aucun nouveau commentaire valide trouvé.")
     with open("no_comments.flag", "w") as f:
         f.write("no comments")
-    # Mise à jour du timestamp pour avancer quand même
-    now_ts = int(time.time())
-    with open(last_update_path, "w", encoding="utf-8") as f:
-        json.dump({"timestamp": now_ts}, f)
-    print(f"🕒 Horodatage créé/mis à jour : {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(now_ts))}")
 else:
     with open("data/comments.json", "w", encoding="utf-8") as f:
         json.dump(comments, f, ensure_ascii=False, indent=2)
-    # Mise à jour horodatage
-    now_ts = int(time.time())
-    with open(last_update_path, "w", encoding="utf-8") as f:
-        json.dump({"timestamp": now_ts}, f)
     if use_time_filter:
         print(f"✅ {len(comments)} nouveaux commentaires après {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(last_update_ts))}")
     else:
         print(f"✅ {len(comments)} derniers commentaires sélectionnés (aucun horodatage trouvé)")
-    print(f"🕒 Nouvel horodatage enregistré : {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(now_ts))}")
