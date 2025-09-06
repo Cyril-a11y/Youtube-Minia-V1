@@ -30,8 +30,15 @@ archive_filename = f"{global_index:04d}_{author_safe}_{snippet_safe}.png"
 archive_path = os.path.join("data/archives", archive_filename)
 
 # --- Génération de l'image via Replicate ---
-prompt = f"Une image photoréaliste représentant : {text}, haute qualité, détails précis"
-negative_prompt = ""
+prompt = (
+    f"Ultra-detailed cinematic illustration of {text}, "
+    "highly realistic, dramatic lighting, 8k, sharp focus, masterpiece, trending on artstation"
+)
+
+negative_prompt = (
+    "low quality, blurry, deformed, distorted, text, watermark, bad anatomy, extra limbs, cropped, "
+    "lowres, jpeg artifacts, worst quality, ugly, cartoonish, disfigured"
+)
 
 print("🎨 Prompt envoyé à Replicate :", prompt)
 
@@ -46,7 +53,9 @@ payload = {
         "prompt": prompt,
         "negative_prompt": negative_prompt,
         "width": 1280,
-        "height": 720
+        "height": 720,
+        "guidance_scale": 9,       # plus fidèle au prompt
+        "num_inference_steps": 50  # plus de détails
     }
 }
 
