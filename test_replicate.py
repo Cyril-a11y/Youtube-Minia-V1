@@ -1,14 +1,33 @@
 import os
 import replicate
+import requests
 from PIL import Image
+import time
 
-# --- Paramètres ---
 PROMPT = "un beau paysage"
-MODEL = "stability-ai/sdxl:8cfed36c"  # modèle par défaut (tu peux changer)
+MODEL = "stability-ai/sdxl"   # modèle par défaut (tu peux changer)
 
-os.makedirs("data/archives", exist_ok=True)
+# --- Étape 1 : Lister les modèles disponibles ---
+print("📜 Listing des modèles Replicate accessibles...")
+token = os.getenv("REPLICATE_API_TOKEN")
+if not token:
+    raise SystemExit("❌ Manque le secret REPLICATE_API_TOKEN")
 
-# --- Génération image avec Replicate ---
+resp = requests.get(
+    "https://api.replicate.com/v1/models",
+    headers={"Authorization": f"Token {token}"}
+)
+
+if resp.status_code == 200:
+    data = resp.json()
+    for m in data.get("results", []):
+        print(f" - {m['owner']}/{m['name']}")
+else:
+    print(f"⚠️ Impossible de lister les modèles ({resp.status_code}) : {resp.text}")
+
+print("====================================")
+
+# --- Étape 2 : Génération image avec Replicate ---
 print(f"⏳ Génération avec Replicate : {PROMPT}")
 output = replicate.run(
     MODEL,
@@ -16,8 +35,7 @@ output = replicate.run(
 )
 image_url = output[0]
 
-# Téléchargement
-import requests
+# --- Téléchargement ---
 r = requests.get(image_url, stream=True)
 r.raise_for_status()
 with open("data/generated.png", "wb") as f:
@@ -38,11 +56,11 @@ base.paste(gen, (base.width - 420, base.height - 420), gen)
 
 # Sauvegarde
 final_path = "data/final_thumbnail.png"
+os.makedirs("data/archives", exist_ok=True)
 base.save(final_path)
 print(f"✅ Miniature finale sauvegardée : {final_path}")
 
-# Archive (avec un numéro unique)
-import time
+# Archive
 archive_path = f"data/archives/test_{int(time.time())}.png"
 base.save(archive_path)
 print(f"💾 Archivé : {archive_path}")
