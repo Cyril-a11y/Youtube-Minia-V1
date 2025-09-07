@@ -7,7 +7,7 @@ import subprocess
 # --- Paramètres ---
 PROMPT = "Un ours sur un vélo dans un parc au coucher de soleil"
 AUTHOR = "Cyril"
-MODEL = "qwen/qwen-image"  # ex: "google/gemini-2.5-flash-image"
+MODEL = "black-forest-labs/flux-schnell" 
 
 # --- Auth ---
 token = os.getenv("REPLICATE_API_TOKEN")
