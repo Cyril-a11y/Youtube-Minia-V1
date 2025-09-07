@@ -58,8 +58,8 @@ draw = ImageDraw.Draw(base)
 text_line = f"{AUTHOR} : {PROMPT}"
 
 # Tronquer si trop long
-if len(text_line) > 50:
-    text_line = text_line[:47] + "..."
+if len(text_line) > 70:
+    text_line = text_line[:67] + "..."
 
 try:
     # ✅ DejaVuSans est dispo sur Ubuntu / GitHub Actions
