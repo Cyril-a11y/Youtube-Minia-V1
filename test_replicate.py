@@ -63,7 +63,11 @@ except:
     font = ImageFont.load_default()
 
 text_x, text_y = x, y + 502 + 10
-text_w, text_h = draw.textsize(text_line, font=font)
+
+# Mesure du texte avec textbbox (compatible Pillow moderne)
+bbox = draw.textbbox((0, 0), text_line, font=font)
+text_w = bbox[2] - bbox[0]
+text_h = bbox[3] - bbox[1]
 
 # Fond noir derrière le texte
 margin = 10
