@@ -5,7 +5,7 @@ import subprocess
 import time
 
 # --- Paramètres ---
-PROMPT = "Une moule sur un vélo dans un parc au coucher de soleil"
+PROMPT = "Une citrouille dans une voiture dans un parc au coucher de soleil"
 AUTHOR = "Cyril"
 MODEL = "black-forest-labs/flux-schnell"
 
@@ -22,21 +22,26 @@ existing = [f for f in os.listdir("data/archives") if f.endswith("_final.png")]
 next_num = len(existing) + 1
 num_str = f"{next_num:04d}"
 
-# --- Génération image via API ---
+def commit_and_push(msg):
+    """Force commit & push"""
+    try:
+        subprocess.run(["git", "config", "--global", "user.name", "github-actions[bot]"], check=True)
+        subprocess.run(["git", "config", "--global", "user.email", "github-actions[bot]@users.noreply.github.com"], check=True)
+        subprocess.run(["git", "add", "-A"], check=True)
+        subprocess.run(["git", "commit", "--allow-empty", "-m", msg], check=True)
+        subprocess.run(["git", "push"], check=True)
+        print("✅ Poussé dans le repo :", msg)
+    except Exception as e:
+        print(f"⚠️ Erreur lors du push : {e}")
+
+# --- Génération image brute ---
 print(f"⏳ Génération avec Replicate ({MODEL}) : {PROMPT}")
 
 url = "https://api.replicate.com/v1/predictions"
-headers = {
-    "Authorization": f"Token {token}",
-    "Content-Type": "application/json"
-}
+headers = {"Authorization": f"Token {token}", "Content-Type": "application/json"}
 payload = {
     "version": MODEL,
-    "input": {
-        "prompt": PROMPT,
-        "width": 1280,
-        "height": 720
-    }
+    "input": {"prompt": PROMPT, "width": 1280, "height": 720}
 }
 
 response = requests.post(url, headers=headers, json=payload)
@@ -64,6 +69,9 @@ with open(gen_path, "wb") as f:
         f.write(chunk)
 print(f"✅ Image brute sauvegardée : {gen_path}")
 
+# --- Push immédiat de l'image brute ---
+commit_and_push(f"🖼️ Image brute {num_str} (flux-schnell)")
+
 # --- Montage final ---
 miniature_path = "data/miniature.png"
 if not os.path.exists(miniature_path):
@@ -90,10 +98,9 @@ text_y = y + 502 + 10
 bbox = draw.textbbox((0, 0), text_line, font=font)
 text_w = bbox[2] - bbox[0]
 text_x = x + 785 - text_w
-
 draw.text((text_x, text_y), text_line, font=font, fill="white")
 
-# Sauvegardes
+# Sauvegardes finales
 final_path = "data/final_thumbnail.png"
 archive_final = f"data/archives/{num_str}_final.png"
 base.save(final_path)
@@ -102,17 +109,5 @@ base.save(archive_final)
 print(f"✅ Miniature finale sauvegardée : {final_path}")
 print(f"💾 Miniature archivée : {archive_final}")
 
-# --- Commit & push ---
-print("📤 Commit & push des résultats (forcé)...")
-try:
-    subprocess.run(["git", "config", "--global", "user.name", "github-actions[bot]"], check=True)
-    subprocess.run(["git", "config", "--global", "user.email", "github-actions[bot]@users.noreply.github.com"], check=True)
-    subprocess.run(["git", "add", "-A"], check=True)
-    subprocess.run([
-        "git", "commit", "--allow-empty",
-        "-m", f"🖼️ Nouvelle miniature {num_str} (flux-schnell, commit forcé)"
-    ], check=True)
-    subprocess.run(["git", "push"], check=True)
-    print("✅ Résultat poussé dans le repo avec succès.")
-except Exception as e:
-    print(f"⚠️ Erreur lors du push : {e}")
+# --- Push final ---
+commit_and_push(f"🖼️ Miniature finale {num_str} (flux-schnell)")
