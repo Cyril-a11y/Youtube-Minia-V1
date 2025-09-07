@@ -74,7 +74,7 @@ print(f"✅ Image brute sauvegardée : {gen_path}")
 commit_and_push(f"🖼️ Image brute {num_str} (flux-schnell)")
 
 # --- Montage final ---
-miniature_path = "data/miniature.png"
+miniature_path = "data/miniature2.png"
 if not os.path.exists(miniature_path):
     raise SystemExit(f"❌ {miniature_path} introuvable")
 
