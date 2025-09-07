@@ -7,7 +7,7 @@ import subprocess
 # --- Paramètres ---
 PROMPT = "Une orange sur un vélo dans un parc au coucher de soleil"
 AUTHOR = "Cyril"
-MODEL = "black-forest-labs/flux-schnell"
+MODEL = "qwen/qwen-image"
 
 # --- Auth ---
 token = os.getenv("REPLICATE_API_TOKEN")
