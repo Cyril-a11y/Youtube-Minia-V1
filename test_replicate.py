@@ -101,6 +101,17 @@ text_w = bbox[2] - bbox[0]
 text_x = x + 800 - text_w
 draw.text((text_x, text_y), text_line, font=font, fill="white")
 
+# --- Ajouter surminiature.png par-dessus ---
+overlay_path = "data/surminiature.png"
+if os.path.exists(overlay_path):
+    overlay = Image.open(overlay_path).convert("RGBA")
+    if overlay.size != base.size:
+        overlay = overlay.resize(base.size)
+    base.alpha_composite(overlay)
+    print("✅ surminiature.png ajouté par-dessus")
+else:
+    print("⚠️ surminiature.png introuvable, montage sans overlay")
+
 # Sauvegardes finales
 final_path = "data/final_thumbnail.png"
 archive_final = f"data/archives/{num_str}_final.png"
