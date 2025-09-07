@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw, ImageFont
 import subprocess
 
 # --- Paramètres ---
-PROMPT = "Un serpent sur un vélo dans un parc au coucher de soleil"
+PROMPT = "Une orange sur un vélo dans un parc au coucher de soleil"
 AUTHOR = "Cyril"
 MODEL = "black-forest-labs/flux-schnell"
 
@@ -53,9 +53,13 @@ gen = Image.open(gen_path).convert("RGBA").resize((785, 502))
 x, y = 458, 150
 base.paste(gen, (x, y), gen)
 
-# Texte sous l’image (taille ajustable, aligné à droite)
+# Texte sous l’image (limité à 50 caractères, aligné à droite)
 draw = ImageDraw.Draw(base)
 text_line = f"{AUTHOR} : {PROMPT}"
+
+# Tronquer si trop long
+if len(text_line) > 50:
+    text_line = text_line[:47] + "..."
 
 try:
     # ✅ DejaVuSans est dispo sur Ubuntu / GitHub Actions
