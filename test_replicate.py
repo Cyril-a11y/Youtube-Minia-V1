@@ -3,6 +3,7 @@ import replicate
 import requests
 from PIL import Image
 import time
+import subprocess
 
 # --- Paramètres ---
 PROMPT = "un beau paysage"   # 👉 change le prompt ici si tu veux tester autre chose
@@ -66,3 +67,15 @@ try:
     print(f"💾 Archivé : {archive_path}")
 except Exception as e:
     raise SystemExit(f"❌ Erreur lors du montage : {e}")
+
+# --- Commit & push des résultats ---
+print("📤 Commit & push des résultats...")
+try:
+    subprocess.run(["git", "config", "--global", "user.name", "github-actions[bot]"], check=True)
+    subprocess.run(["git", "config", "--global", "user.email", "github-actions[bot]@users.noreply.github.com"], check=True)
+    subprocess.run(["git", "add", "data/final_thumbnail.png", "data/archives/"], check=True)
+    subprocess.run(["git", "commit", "-m", "🖼️ Nouvelle miniature test"], check=True)
+    subprocess.run(["git", "push"], check=True)
+    print("✅ Résultat poussé dans le repo avec succès.")
+except Exception as e:
+    print(f"⚠️ Aucun changement à commit ou erreur lors du push : {e}")
