@@ -95,10 +95,10 @@ try:
 except Exception:
     font = ImageFont.load_default()
 
-text_y = y + 552 + 10
+text_y = y + 562 + 10
 bbox = draw.textbbox((0, 0), text_line, font=font)
 text_w = bbox[2] - bbox[0]
-text_x = x + 785 - text_w
+text_x = x + 800 - text_w
 draw.text((text_x, text_y), text_line, font=font, fill="white")
 
 # Sauvegardes finales
