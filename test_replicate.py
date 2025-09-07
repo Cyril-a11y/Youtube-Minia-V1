@@ -5,14 +5,15 @@ from PIL import Image
 import time
 
 PROMPT = "un beau paysage"
-MODEL = "stability-ai/sdxl"   # modèle par défaut (tu peux changer)
+MODEL = "google/gemini-2.5-flash-image"   # 👉 change ici le modèle que tu veux tester
 
-# --- Étape 1 : Lister les modèles disponibles ---
-print("📜 Listing des modèles Replicate accessibles...")
+# --- Auth ---
 token = os.getenv("REPLICATE_API_TOKEN")
 if not token:
     raise SystemExit("❌ Manque le secret REPLICATE_API_TOKEN")
 
+# --- Étape 1 : Lister les modèles ---
+print("📜 Listing des modèles Replicate accessibles...")
 resp = requests.get(
     "https://api.replicate.com/v1/models",
     headers={"Authorization": f"Token {token}"}
@@ -27,8 +28,32 @@ else:
 
 print("====================================")
 
-# --- Étape 2 : Génération image avec Replicate ---
-print(f"⏳ Génération avec Replicate : {PROMPT}")
+# --- Étape 2 : Lister les versions du modèle choisi ---
+print(f"🔎 Recherche des versions disponibles pour {MODEL}...")
+resp_versions = requests.get(
+    f"https://api.replicate.com/v1/models/{MODEL}/versions",
+    headers={"Authorization": f"Token {token}"}
+)
+
+if resp_versions.status_code == 200:
+    versions = resp_versions.json().get("results", [])
+    if versions:
+        print(f"✅ {len(versions)} version(s) trouvée(s) :")
+        for v in versions:
+            created = v.get("created_at", "?")
+            vid = v.get("id", "?")
+            print(f" - {vid} (créé le {created})")
+        # ⚠️ Tu peux copier-coller un hash de version et l’ajouter à MODEL si nécessaire :
+        # MODEL = f"{MODEL}:{vid}"
+    else:
+        print("⚠️ Aucune version trouvée pour ce modèle.")
+else:
+    print(f"⚠️ Impossible de lister les versions ({resp_versions.status_code}) : {resp_versions.text}")
+
+print("====================================")
+
+# --- Étape 3 : Génération image avec Replicate ---
+print(f"⏳ Génération avec Replicate ({MODEL}) : {PROMPT}")
 output = replicate.run(
     MODEL,
     input={"prompt": PROMPT, "width": 512, "height": 512}
@@ -36,6 +61,7 @@ output = replicate.run(
 image_url = output[0]
 
 # --- Téléchargement ---
+os.makedirs("data", exist_ok=True)
 r = requests.get(image_url, stream=True)
 r.raise_for_status()
 with open("data/generated.png", "wb") as f:
