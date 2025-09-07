@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw, ImageFont
 import subprocess
 
 # --- Paramètres ---
-PROMPT = "Une girafe sur un velo dans un parc au coucher de soleil"
+PROMPT = "Une tortue sur un velo dans un parc au coucher de soleil"
 AUTHOR = "Cyril"
 MODEL = "qwen/qwen-image"  # ex: "google/gemini-2.5-flash-image"
 
