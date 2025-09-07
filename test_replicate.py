@@ -7,7 +7,7 @@ import subprocess
 # --- Paramètres ---
 PROMPT = "Un serpent sur un vélo dans un parc au coucher de soleil"
 AUTHOR = "Cyril"
-MODEL = "black-forest-labs/flux-schnell" 
+MODEL = "black-forest-labs/flux-schnell"
 
 # --- Auth ---
 token = os.getenv("REPLICATE_API_TOKEN")
@@ -79,13 +79,16 @@ base.save(final_path)
 print(f"✅ Miniature finale sauvegardée : {final_path}")
 
 # --- Commit & push ---
-print("📤 Commit & push des résultats...")
+print("📤 Commit & push des résultats (forcé)...")
 try:
     subprocess.run(["git", "config", "--global", "user.name", "github-actions[bot]"], check=True)
     subprocess.run(["git", "config", "--global", "user.email", "github-actions[bot]@users.noreply.github.com"], check=True)
-    subprocess.run(["git", "add", final_path], check=True)
-    subprocess.run(["git", "commit", "-m", "🖼️ Nouvelle miniature test avec texte ajustable"], check=True)
+    subprocess.run(["git", "add", "-A"], check=True)  # inclut les nouveaux fichiers
+    subprocess.run([
+        "git", "commit", "--allow-empty",
+        "-m", "🖼️ Nouvelle miniature test avec texte ajustable (commit forcé)"
+    ], check=True)
     subprocess.run(["git", "push"], check=True)
-    print("✅ Résultat poussé dans le repo avec succès.")
+    print("✅ Résultat poussé dans le repo avec succès (commit forcé).")
 except Exception as e:
-    print(f"⚠️ Aucun changement à commit ou erreur lors du push : {e}")
+    print(f"⚠️ Erreur lors du push : {e}")
