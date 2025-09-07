@@ -35,7 +35,7 @@ print("✅ Image générée : data/generated.png")
 if not os.path.exists("miniature.png"):
     raise SystemExit("❌ miniature.png introuvable")
 
-base = Image.open("miniature.png").convert("RGBA")
+base = Image.open("data/miniature.png").convert("RGBA")
 gen = Image.open("data/generated.png").convert("RGBA").resize((400, 400))
 
 # Incrustation en bas à droite
