@@ -58,7 +58,7 @@ draw = ImageDraw.Draw(base)
 text_line = f"{AUTHOR} : {PROMPT}"
 
 try:
-    font = ImageFont.truetype("arial.ttf", 36)  # police plus grande
+    font = ImageFont.truetype("arial.ttf", 42)  # police plus grande
 except:
     font = ImageFont.load_default()
 
