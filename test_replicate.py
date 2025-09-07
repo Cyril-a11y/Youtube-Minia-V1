@@ -5,7 +5,7 @@ import subprocess
 import time
 
 # --- Paramètres ---
-PROMPT = "Une statue de venus sautant dans une flaque sous un arc en ciel"
+PROMPT = "Un koala faisant du football dans un stade bondé"
 AUTHOR = "Cyril"
 #MODEL = "black-forest-labs/flux-schnell"
 MODEL = "qwen/qwen-image"
