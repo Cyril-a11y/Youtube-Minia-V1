@@ -87,15 +87,15 @@ base.paste(gen, (x, y), gen)
 # Texte sous l’image
 draw = ImageDraw.Draw(base)
 text_line = f"{AUTHOR} : {PROMPT}"
-if len(text_line) > 70:
-    text_line = text_line[:67] + "..."
+if len(text_line) > 80:
+    text_line = text_line[:77] + "..."
 
 try:
     font = ImageFont.truetype("DejaVuSans-Bold.ttf", 18)
 except Exception:
     font = ImageFont.load_default()
 
-text_y = y + 502 + 10
+text_y = y + 552 + 10
 bbox = draw.textbbox((0, 0), text_line, font=font)
 text_w = bbox[2] - bbox[0]
 text_x = x + 785 - text_w
