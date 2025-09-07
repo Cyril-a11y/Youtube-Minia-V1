@@ -5,7 +5,7 @@ import subprocess
 import time
 
 # --- Paramètres ---
-PROMPT = "Une loutre sur un vélo dans un parc au coucher de soleil"
+PROMPT = "Une moule sur un vélo dans un parc au coucher de soleil"
 AUTHOR = "Cyril"
 MODEL = "black-forest-labs/flux-schnell"
 
