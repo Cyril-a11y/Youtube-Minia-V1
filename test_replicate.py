@@ -53,28 +53,22 @@ gen = Image.open(gen_path).convert("RGBA").resize((785, 502))
 x, y = 458, 150
 base.paste(gen, (x, y), gen)
 
-# Texte sous l’image
+# Texte sous l’image (plus grand, blanc, aligné à droite)
 draw = ImageDraw.Draw(base)
 text_line = f"{AUTHOR} : {PROMPT}"
 
 try:
-    font = ImageFont.truetype("arial.ttf", 28)
+    font = ImageFont.truetype("arial.ttf", 36)  # police plus grande
 except:
     font = ImageFont.load_default()
 
-text_x, text_y = x, y + 502 + 10
-
-# Mesure du texte avec textbbox (compatible Pillow moderne)
+text_y = y + 502 + 10
 bbox = draw.textbbox((0, 0), text_line, font=font)
 text_w = bbox[2] - bbox[0]
-text_h = bbox[3] - bbox[1]
 
-# Fond noir derrière le texte
-margin = 10
-draw.rectangle(
-    [text_x - margin, text_y - margin, text_x + text_w + margin, text_y + text_h + margin],
-    fill="black"
-)
+# Aligner à droite sous le cadre
+text_x = x + 785 - text_w
+
 draw.text((text_x, text_y), text_line, font=font, fill="white")
 
 # Sauvegarde finale
@@ -88,7 +82,7 @@ try:
     subprocess.run(["git", "config", "--global", "user.name", "github-actions[bot]"], check=True)
     subprocess.run(["git", "config", "--global", "user.email", "github-actions[bot]@users.noreply.github.com"], check=True)
     subprocess.run(["git", "add", final_path], check=True)
-    subprocess.run(["git", "commit", "-m", "🖼️ Nouvelle miniature test avec texte"], check=True)
+    subprocess.run(["git", "commit", "-m", "🖼️ Nouvelle miniature test avec texte aligné à droite"], check=True)
     subprocess.run(["git", "push"], check=True)
     print("✅ Résultat poussé dans le repo avec succès.")
 except Exception as e:
