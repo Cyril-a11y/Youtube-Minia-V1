@@ -79,7 +79,7 @@ if not os.path.exists(miniature_path):
     raise SystemExit(f"❌ {miniature_path} introuvable")
 
 base = Image.open(miniature_path).convert("RGBA")
-gen = Image.open(gen_path).convert("RGBA").resize((872, 555))
+gen = Image.open(gen_path).convert("RGBA").resize((872, 557))
 
 x, y = 32, 85
 base.paste(gen, (x, y), gen)
