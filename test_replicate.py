@@ -7,7 +7,8 @@ import time
 # --- Paramètres ---
 PROMPT = "Une amulette dans une voiture dans un parc au coucher de soleil"
 AUTHOR = "Cyril"
-MODEL = "black-forest-labs/flux-schnell"
+#MODEL = "black-forest-labs/flux-schnell"
+MODEL = "qwen/qwen-image"
 
 # --- Auth ---
 token = os.getenv("REPLICATE_API_TOKEN")
