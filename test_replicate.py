@@ -1,33 +1,52 @@
 import os
-import replicate
 import requests
 from PIL import Image, ImageDraw, ImageFont
 import subprocess
+import time
+import json
 
 # --- Paramètres ---
 PROMPT = "Une loutre sur un vélo dans un parc au coucher de soleil"
 AUTHOR = "Cyril"
-MODEL = "qwen/qwen-image"
+VERSION = "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b"
 
 # --- Auth ---
 token = os.getenv("REPLICATE_API_TOKEN")
 if not token:
     raise SystemExit("❌ Manque le secret REPLICATE_API_TOKEN")
 
-# --- Génération image ---
-print(f"⏳ Génération avec Replicate ({MODEL}) : {PROMPT}")
-try:
-    output = replicate.run(
-        MODEL,
-        input={"prompt": PROMPT, "width": 1280, "height": 720}
-    )
-except Exception as e:
-    raise SystemExit(f"❌ Erreur lors de la génération Replicate : {e}")
+# --- Génération image via API REST (version figée) ---
+print(f"⏳ Génération avec Replicate (SDXL pinned) : {PROMPT}")
 
-if not output or not isinstance(output, list):
-    raise SystemExit("❌ Aucune image générée")
+url = "https://api.replicate.com/v1/predictions"
+headers = {
+    "Authorization": f"Token {token}",
+    "Content-Type": "application/json"
+}
+payload = {
+    "version": VERSION,
+    "input": {
+        "prompt": PROMPT,
+        "width": 1280,
+        "height": 720
+    }
+}
 
-image_url = output[0]
+response = requests.post(url, headers=headers, json=payload)
+if response.status_code not in [200, 201]:
+    raise SystemExit(f"❌ Erreur API Replicate : {response.text}")
+
+prediction = response.json()
+prediction_url = prediction["urls"]["get"]
+
+while prediction["status"] not in ["succeeded", "failed"]:
+    time.sleep(3)
+    prediction = requests.get(prediction_url, headers=headers).json()
+
+if prediction["status"] != "succeeded":
+    raise SystemExit("❌ La génération a échoué")
+
+image_url = prediction["output"][0]
 
 # --- Téléchargement ---
 os.makedirs("data", exist_ok=True)
@@ -53,7 +72,7 @@ gen = Image.open(gen_path).convert("RGBA").resize((785, 502))
 x, y = 458, 150
 base.paste(gen, (x, y), gen)
 
-# Texte sous l’image (limité à 50 caractères, aligné à droite)
+# Texte sous l’image (limité à 70 caractères, aligné à droite)
 draw = ImageDraw.Draw(base)
 text_line = f"{AUTHOR} : {PROMPT}"
 
@@ -62,19 +81,17 @@ if len(text_line) > 70:
     text_line = text_line[:67] + "..."
 
 try:
-    # ✅ DejaVuSans est dispo sur Ubuntu / GitHub Actions
     font = ImageFont.truetype("DejaVuSans-Bold.ttf", 18)
     print("✅ Police DejaVuSans-Bold chargée")
 except Exception as e:
     font = ImageFont.load_default()
-    print(f"⚠️ Impossible de charger DejaVuSans-Bold, fallback load_default() ({e})")
+    print(f"⚠️ Fallback load_default() : {e}")
 
 text_y = y + 502 + 10
 bbox = draw.textbbox((0, 0), text_line, font=font)
 text_w = bbox[2] - bbox[0]
-
-# Aligné à droite sous le cadre
 text_x = x + 785 - text_w
+
 draw.text((text_x, text_y), text_line, font=font, fill="white")
 
 # Sauvegarde finale
@@ -87,10 +104,10 @@ print("📤 Commit & push des résultats (forcé)...")
 try:
     subprocess.run(["git", "config", "--global", "user.name", "github-actions[bot]"], check=True)
     subprocess.run(["git", "config", "--global", "user.email", "github-actions[bot]@users.noreply.github.com"], check=True)
-    subprocess.run(["git", "add", "-A"], check=True)  # inclut les nouveaux fichiers
+    subprocess.run(["git", "add", "-A"], check=True)
     subprocess.run([
         "git", "commit", "--allow-empty",
-        "-m", "🖼️ Nouvelle miniature test avec texte ajustable (commit forcé)"
+        "-m", "🖼️ Nouvelle miniature test avec SDXL (version figée, commit forcé)"
     ], check=True)
     subprocess.run(["git", "push"], check=True)
     print("✅ Résultat poussé dans le repo avec succès (commit forcé).")
