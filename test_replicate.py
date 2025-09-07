@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw, ImageFont
 import subprocess
 
 # --- Paramètres ---
-PROMPT = "Un ours sur un vélo dans un parc au coucher de soleil"
+PROMPT = "Un serpent sur un vélo dans un parc au coucher de soleil"
 AUTHOR = "Cyril"
 MODEL = "black-forest-labs/flux-schnell" 
 
