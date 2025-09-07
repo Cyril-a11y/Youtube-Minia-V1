@@ -5,7 +5,7 @@ from PIL import Image
 import time
 
 PROMPT = "un beau paysage"
-MODEL = "google/gemini-2.5-flash-image"   # 👉 change ici le modèle que tu veux tester
+MODEL = "google/gemini-2.5-flash-image"   # 👉 change ici le modèle à tester
 
 # --- Auth ---
 token = os.getenv("REPLICATE_API_TOKEN")
@@ -28,7 +28,7 @@ else:
 
 print("====================================")
 
-# --- Étape 2 : Lister les versions du modèle choisi ---
+# --- Étape 2 : Récupérer la dernière version du modèle ---
 print(f"🔎 Recherche des versions disponibles pour {MODEL}...")
 resp_versions = requests.get(
     f"https://api.replicate.com/v1/models/{MODEL}/versions",
@@ -38,24 +38,22 @@ resp_versions = requests.get(
 if resp_versions.status_code == 200:
     versions = resp_versions.json().get("results", [])
     if versions:
-        print(f"✅ {len(versions)} version(s) trouvée(s) :")
-        for v in versions:
-            created = v.get("created_at", "?")
-            vid = v.get("id", "?")
-            print(f" - {vid} (créé le {created})")
-        # ⚠️ Tu peux copier-coller un hash de version et l’ajouter à MODEL si nécessaire :
-        # MODEL = f"{MODEL}:{vid}"
+        latest = versions[0]  # la première est la plus récente
+        vid = latest.get("id")
+        created = latest.get("created_at", "?")
+        MODEL_VERSION = f"{MODEL}:{vid}"
+        print(f"✅ Dernière version trouvée : {MODEL_VERSION} (créée le {created})")
     else:
-        print("⚠️ Aucune version trouvée pour ce modèle.")
+        raise SystemExit("⚠️ Aucune version trouvée pour ce modèle.")
 else:
-    print(f"⚠️ Impossible de lister les versions ({resp_versions.status_code}) : {resp_versions.text}")
+    raise SystemExit(f"⚠️ Impossible de lister les versions ({resp_versions.status_code}) : {resp_versions.text}")
 
 print("====================================")
 
 # --- Étape 3 : Génération image avec Replicate ---
-print(f"⏳ Génération avec Replicate ({MODEL}) : {PROMPT}")
+print(f"⏳ Génération avec Replicate ({MODEL_VERSION}) : {PROMPT}")
 output = replicate.run(
-    MODEL,
+    MODEL_VERSION,
     input={"prompt": PROMPT, "width": 512, "height": 512}
 )
 image_url = output[0]
