@@ -59,7 +59,7 @@ text_line = f"{AUTHOR} : {PROMPT}"
 
 try:
     # ✅ DejaVuSans est dispo sur Ubuntu / GitHub Actions
-    font = ImageFont.truetype("DejaVuSans-Bold.ttf", 42)
+    font = ImageFont.truetype("DejaVuSans-Bold.ttf", 36)
     print("✅ Police DejaVuSans-Bold chargée")
 except Exception as e:
     font = ImageFont.load_default()
