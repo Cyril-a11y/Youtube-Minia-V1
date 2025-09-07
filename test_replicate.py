@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw, ImageFont
 import subprocess
 
 # --- Paramètres ---
-PROMPT = "Une tortue sur un velo dans un parc au coucher de soleil"
+PROMPT = "Une tortue sur un vélo dans un parc au coucher de soleil"
 AUTHOR = "Cyril"
 MODEL = "qwen/qwen-image"  # ex: "google/gemini-2.5-flash-image"
 
@@ -53,22 +53,24 @@ gen = Image.open(gen_path).convert("RGBA").resize((785, 502))
 x, y = 458, 150
 base.paste(gen, (x, y), gen)
 
-# Texte sous l’image (plus grand, blanc, aligné à droite)
+# Texte sous l’image (taille ajustable, aligné à droite)
 draw = ImageDraw.Draw(base)
 text_line = f"{AUTHOR} : {PROMPT}"
 
 try:
-    font = ImageFont.truetype("arial.ttf", 42)  # police plus grande
-except:
+    # ✅ DejaVuSans est dispo sur Ubuntu / GitHub Actions
+    font = ImageFont.truetype("DejaVuSans-Bold.ttf", 42)
+    print("✅ Police DejaVuSans-Bold chargée")
+except Exception as e:
     font = ImageFont.load_default()
+    print(f"⚠️ Impossible de charger DejaVuSans-Bold, fallback load_default() ({e})")
 
 text_y = y + 502 + 10
 bbox = draw.textbbox((0, 0), text_line, font=font)
 text_w = bbox[2] - bbox[0]
 
-# Aligner à droite sous le cadre
+# Aligné à droite sous le cadre
 text_x = x + 785 - text_w
-
 draw.text((text_x, text_y), text_line, font=font, fill="white")
 
 # Sauvegarde finale
@@ -82,7 +84,7 @@ try:
     subprocess.run(["git", "config", "--global", "user.name", "github-actions[bot]"], check=True)
     subprocess.run(["git", "config", "--global", "user.email", "github-actions[bot]@users.noreply.github.com"], check=True)
     subprocess.run(["git", "add", final_path], check=True)
-    subprocess.run(["git", "commit", "-m", "🖼️ Nouvelle miniature test avec texte aligné à droite"], check=True)
+    subprocess.run(["git", "commit", "-m", "🖼️ Nouvelle miniature test avec texte ajustable"], check=True)
     subprocess.run(["git", "push"], check=True)
     print("✅ Résultat poussé dans le repo avec succès.")
 except Exception as e:
